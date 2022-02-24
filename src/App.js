@@ -3,7 +3,7 @@ import './App.css';
 
 const axios = require('axios');
 const dealsApiURL = process.env.REACT_APP_API_URL;
-const imageServerURL = process.env.REACT_APP_IMAGE_DETECTION_URL
+const imageServerURL = "http://3.250.128.223:3000/"
 
 function App() {
 
