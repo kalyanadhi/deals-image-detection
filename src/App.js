@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import './App.css';
-require('dotenv').config()
 
 const axios = require('axios');
 const dealsApiURL = process.env.REACT_APP_API_URL;
