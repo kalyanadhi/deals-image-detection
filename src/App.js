@@ -24,7 +24,7 @@ function App() {
     };
 
     //authorization: tiPdu4GGea&*)*%RjL9vc1gAWIegmk6m2tV!@SR@
-    axios.post(imageServerURL+"logo-upload", formData, config)
+    axios.post(imageServerURL+"logo-upload/", formData, config)
       .then((response) => {
         console.log(response.data);
         if (response.data && response.data.length > 0) {
