@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import './App.css';
 
 const axios = require('axios');
+const dealsApiURL = process.env.REACT_APP_API_URL;
+const imageServerURL = process.env.REACT_APP_IMAGE_DETECTION_URL
 
 function App() {
 
@@ -9,7 +11,7 @@ function App() {
   // const [selectedImageName, setSelectedImageName] = useState("");
   const [orgList, setOrgList] = useState([]);
   const [identifiedImg, setIdentifiedImg] = useState("");
-
+  console.log(dealsApiURL);
 
   function imageUpload(file, fileName) {
 
@@ -22,7 +24,7 @@ function App() {
     };
 
     //authorization: tiPdu4GGea&*)*%RjL9vc1gAWIegmk6m2tV!@SR@
-    axios.post("http://localhost:5000/logo-upload", formData, config)
+    axios.post(imageServerURL+"logo-upload", formData, config)
       .then((response) => {
         console.log(response.data);
         if (response.data && response.data.length > 0) {
@@ -45,7 +47,7 @@ function App() {
       }
     };
 
-    axios.post("http://localhost:3000/imageSearch/byLogoName", { logoName: logoName }, imgApiConfig)
+    axios.post(dealsApiURL+"imageSearch/byLogoName", { logoName: logoName }, imgApiConfig)
       .then((response) => {
         setOrgList(response.data)
         console.log(response.data);
