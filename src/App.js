@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import './App.css';
 
 const axios = require('axios');
-const dealsApiURL = process.env.REACT_APP_API_URL;
+const dealsApiURL = "https://deals-staging.sportbusiness.com/api/";
 const imageServerURL = "http://3.250.128.223:3000/"
 
 function App() {
@@ -57,7 +57,7 @@ function App() {
 
   return (
     <div className="App">
-      <p>Image Detection</p>
+      <p>Search by logo</p>
       {/* <input type="file" ></input> */}
       <input type="file" accept="image/*;capture=camera" name="logo" onChange={(event) => {
         setSelectedImage(event.target.files[0]);

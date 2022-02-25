@@ -2,7 +2,6 @@
   "name": "my-app",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://kalyanadhi.github.io/deals-image-detection/",
   "engines": {
     "node": "16.x"
   },
