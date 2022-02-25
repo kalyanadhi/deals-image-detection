@@ -74,10 +74,11 @@ function App() {
         </div>
       )}
       {/* {orgList} */}
+      {/* https://deals.sportbusiness.com/#/organisation/sponsor/25413 */}
       <div className="org-list">
         {
           orgList.map((item, index) => {
-            return <div key={item.OrgId}><br/><span>{item.OrganisationName} - {item.OrgId}</span></div>
+            return <div key={item.OrgId}><br/><span>{item.OrganisationName} - <a href={'https://deals.sportbusiness.com/#/organisation/sponsor/'+item.OrgId}>{item.OrgId}</a></span></div>
           })
         }
       </div>
