@@ -10,7 +10,7 @@ import { formatCurrency } from '../components/WalletCard';
 const colorBg = {
   indigo: 'from-indigo-600 to-indigo-700', emerald: 'from-emerald-600 to-emerald-700',
   rose: 'from-rose-600 to-rose-700', amber: 'from-amber-500 to-amber-600',
-  violet: 'from-violet-600 to-violet-700', cyan: 'from-cyan-600 to-cyan-700',
+  blue: 'from-blue-600 to-blue-700', cyan: 'from-cyan-600 to-cyan-700',
   orange: 'from-orange-500 to-orange-600', teal: 'from-teal-600 to-teal-700',
 };
 

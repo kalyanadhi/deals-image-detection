@@ -7,13 +7,13 @@ const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency:
 
 const colorBg = {
   indigo:'bg-indigo-600', emerald:'bg-emerald-600', rose:'bg-rose-600',
-  amber:'bg-amber-500', violet:'bg-violet-600', cyan:'bg-cyan-600',
+  amber:'bg-amber-500', blue:'bg-blue-600', cyan:'bg-cyan-600',
   orange:'bg-orange-500', teal:'bg-teal-600',
 };
 const colorLight = {
   indigo:'bg-indigo-50 text-indigo-700', emerald:'bg-emerald-50 text-emerald-700',
   rose:'bg-rose-50 text-rose-700', amber:'bg-amber-50 text-amber-700',
-  violet:'bg-violet-50 text-violet-700', cyan:'bg-cyan-50 text-cyan-700',
+  blue:'bg-blue-50 text-blue-700', cyan:'bg-cyan-50 text-cyan-700',
   orange:'bg-orange-50 text-orange-700', teal:'bg-teal-50 text-teal-700',
 };
 

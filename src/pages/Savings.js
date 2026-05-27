@@ -11,7 +11,7 @@ const SAVINGS_ICONS = ['🏦','💰','🏠','🛒','🎓','✈️','💍','🌱'
 
 const colorBg = {
   indigo:'bg-indigo-600', emerald:'bg-emerald-600', rose:'bg-rose-600',
-  amber:'bg-amber-500', violet:'bg-violet-600', cyan:'bg-cyan-600',
+  amber:'bg-amber-500', blue:'bg-blue-600', cyan:'bg-cyan-600',
   orange:'bg-orange-500', teal:'bg-teal-600',
 };
 

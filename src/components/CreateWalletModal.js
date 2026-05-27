@@ -29,7 +29,7 @@ export default function CreateWalletModal({ onClose, onCreated }) {
 
   const colorMap = {
     indigo: 'bg-indigo-500', emerald: 'bg-emerald-500', rose: 'bg-rose-500',
-    amber: 'bg-amber-500', violet: 'bg-violet-500', cyan: 'bg-cyan-500',
+    amber: 'bg-amber-500', blue: 'bg-blue-500', cyan: 'bg-cyan-500',
     orange: 'bg-orange-500', teal: 'bg-teal-500',
   };
 

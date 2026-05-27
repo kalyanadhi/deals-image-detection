@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 
 const FinanceContext = createContext(null);
 
-const WALLET_COLORS = ['indigo', 'emerald', 'rose', 'amber', 'violet', 'cyan', 'orange', 'teal'];
+const WALLET_COLORS = ['indigo', 'emerald', 'rose', 'amber', 'blue', 'cyan', 'orange', 'teal'];
 const WALLET_ICONS = ['💳', '🏦', '💰', '💼', '🏠', '✈️', '🎓', '🛒'];
 
 const DEFAULT_CATEGORIES = [
@@ -27,7 +27,7 @@ const DEFAULT_CATEGORIES = [
 ];
 
 const GOAL_ICONS  = ['🎯','🏠','🚗','✈️','💍','🎓','💻','🏖️','🏋️','🎸','👶','🐶','💊','🌱','🛒'];
-const GOAL_COLORS = ['indigo','emerald','rose','amber','violet','cyan','orange','teal'];
+const GOAL_COLORS = ['indigo','emerald','rose','amber','blue','cyan','orange','teal'];
 const INV_TYPES   = ['stock','crypto','etf','mutual_fund','bond','real_estate','other'];
 const INV_TYPE_LABELS = { stock:'Stock', crypto:'Crypto', etf:'ETF', mutual_fund:'Mutual Fund', bond:'Bond', real_estate:'Real Estate', other:'Other' };
 

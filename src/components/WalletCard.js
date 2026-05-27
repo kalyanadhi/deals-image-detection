@@ -8,7 +8,7 @@ const colorMap = {
   emerald: { bg: 'bg-emerald-600', light: 'bg-emerald-50', text: 'text-emerald-700' },
   rose: { bg: 'bg-rose-600', light: 'bg-rose-50', text: 'text-rose-700' },
   amber: { bg: 'bg-amber-500', light: 'bg-amber-50', text: 'text-amber-700' },
-  violet: { bg: 'bg-violet-600', light: 'bg-violet-50', text: 'text-violet-700' },
+  blue: { bg: 'bg-blue-600', light: 'bg-blue-50', text: 'text-blue-700' },
   cyan: { bg: 'bg-cyan-600', light: 'bg-cyan-50', text: 'text-cyan-700' },
   orange: { bg: 'bg-orange-500', light: 'bg-orange-50', text: 'text-orange-700' },
   teal: { bg: 'bg-teal-600', light: 'bg-teal-50', text: 'text-teal-700' },

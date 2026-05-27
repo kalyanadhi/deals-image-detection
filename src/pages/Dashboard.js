@@ -9,7 +9,7 @@ import { formatCurrency } from '../components/WalletCard';
 
 const colorBg = {
   indigo:'bg-indigo-600', emerald:'bg-emerald-600', rose:'bg-rose-600',
-  amber:'bg-amber-500', violet:'bg-violet-600', cyan:'bg-cyan-600',
+  amber:'bg-amber-500', blue:'bg-blue-600', cyan:'bg-cyan-600',
   orange:'bg-orange-500', teal:'bg-teal-600',
 };
 
@@ -96,7 +96,7 @@ export default function Dashboard() {
 
         {/* Net worth + month stats */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
-          <div className="card bg-gradient-to-br from-indigo-600 to-violet-700 text-white border-0 sm:col-span-2">
+          <div className="card bg-gradient-to-br from-indigo-600 to-blue-700 text-white border-0 sm:col-span-2">
             <p className="text-indigo-200 text-sm mb-1">Net Worth</p>
             <p className="text-3xl font-bold">{formatCurrency(netWorth)}</p>
             <div className="flex gap-4 mt-2">
