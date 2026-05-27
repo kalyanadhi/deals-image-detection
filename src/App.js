@@ -11,6 +11,9 @@ import WalletDetail from './pages/WalletDetail';
 import Profile from './pages/Profile';
 import Categories from './pages/Categories';
 import Budgets from './pages/Budgets';
+import Goals from './pages/Goals';
+import Savings from './pages/Savings';
+import Investments from './pages/Investments';
 
 export default function App() {
   return (
@@ -23,6 +26,9 @@ export default function App() {
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/wallets" element={<ProtectedRoute><Wallets /></ProtectedRoute>} />
             <Route path="/wallets/:id" element={<ProtectedRoute><WalletDetail /></ProtectedRoute>} />
+            <Route path="/goals"       element={<ProtectedRoute><Goals /></ProtectedRoute>} />
+            <Route path="/savings"     element={<ProtectedRoute><Savings /></ProtectedRoute>} />
+            <Route path="/investments" element={<ProtectedRoute><Investments /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
             <Route path="/budgets" element={<ProtectedRoute><Budgets /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
