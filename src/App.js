@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { FinanceProvider } from './context/FinanceContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -17,7 +17,7 @@ import Investments from './pages/Investments';
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <AuthProvider>
         <FinanceProvider>
           <Routes>
@@ -36,6 +36,6 @@ export default function App() {
           </Routes>
         </FinanceProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </Router>
   );
 }
