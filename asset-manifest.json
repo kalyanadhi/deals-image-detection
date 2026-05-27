@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/deals-image-detection/static/css/main.073c9b0a.css",
-    "main.js": "/deals-image-detection/static/js/main.cb5895a0.js",
-    "static/js/787.28cb0dcd.chunk.js": "/deals-image-detection/static/js/787.28cb0dcd.chunk.js",
+    "main.css": "/deals-image-detection/static/css/main.e0d935e2.css",
+    "main.js": "/deals-image-detection/static/js/main.d483c58e.js",
+    "static/js/453.0eeba4f7.chunk.js": "/deals-image-detection/static/js/453.0eeba4f7.chunk.js",
     "index.html": "/deals-image-detection/index.html",
-    "main.073c9b0a.css.map": "/deals-image-detection/static/css/main.073c9b0a.css.map",
-    "main.cb5895a0.js.map": "/deals-image-detection/static/js/main.cb5895a0.js.map",
-    "787.28cb0dcd.chunk.js.map": "/deals-image-detection/static/js/787.28cb0dcd.chunk.js.map"
+    "main.e0d935e2.css.map": "/deals-image-detection/static/css/main.e0d935e2.css.map",
+    "main.d483c58e.js.map": "/deals-image-detection/static/js/main.d483c58e.js.map",
+    "453.0eeba4f7.chunk.js.map": "/deals-image-detection/static/js/453.0eeba4f7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.073c9b0a.css",
-    "static/js/main.cb5895a0.js"
+    "static/css/main.e0d935e2.css",
+    "static/js/main.d483c58e.js"
   ]
 }
