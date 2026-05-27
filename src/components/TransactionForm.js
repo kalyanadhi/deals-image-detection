@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import Modal from './Modal';
 
-const CATEGORIES = {
-  income: ['Salary', 'Freelance', 'Investment', 'Gift', 'Refund', 'Other Income'],
-  expense: ['Food & Dining', 'Shopping', 'Transport', 'Housing', 'Entertainment', 'Health', 'Education', 'Travel', 'Bills', 'Other'],
-};
-
 export default function TransactionForm({ walletId, onClose }) {
-  const { addTransaction } = useFinance();
+  const { addTransaction, getCategories } = useFinance();
   const [form, setForm] = useState({
     type: 'expense',
     amount: '',
@@ -19,6 +14,7 @@ export default function TransactionForm({ walletId, onClose }) {
   const [error, setError] = useState('');
 
   const set = (field, value) => setForm(f => ({ ...f, [field]: value }));
+  const categories = getCategories(form.type);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -79,7 +75,7 @@ export default function TransactionForm({ walletId, onClose }) {
           <label className="label">Category</label>
           <select className="input" value={form.category} onChange={e => set('category', e.target.value)} required>
             <option value="">Select category</option>
-            {CATEGORIES[form.type].map(c => <option key={c} value={c}>{c}</option>)}
+            {categories.map(c => <option key={c.id} value={c.name}>{c.icon} {c.name}</option>)}
           </select>
         </div>
 

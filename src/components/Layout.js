@@ -3,9 +3,11 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/wallets', label: 'Wallets', icon: '👛' },
-  { path: '/profile', label: 'Profile', icon: '👤' },
+  { path: '/dashboard',   label: 'Dashboard',  icon: '📊' },
+  { path: '/wallets',     label: 'Wallets',    icon: '👛' },
+  { path: '/budgets',     label: 'Budgets',    icon: '🎯' },
+  { path: '/categories',  label: 'Categories', icon: '🏷️' },
+  { path: '/profile',     label: 'Profile',    icon: '👤' },
 ];
 
 export default function Layout({ children }) {
