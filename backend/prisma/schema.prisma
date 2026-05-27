@@ -3,8 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  // DIRECT_URL is required when DATABASE_URL uses a connection pooler (e.g. Neon/PgBouncer).
+  // Prisma uses DIRECT_URL for migrations; runtime queries use the pooled DATABASE_URL.
+  directUrl = env("DIRECT_URL")
 }
 
 // ─── AUTH ────────────────────────────────────────────────────────────────────
