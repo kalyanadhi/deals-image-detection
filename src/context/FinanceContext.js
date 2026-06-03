@@ -221,6 +221,7 @@ export function FinanceProvider({ children }) {
       id: uuidv4(), userId: currentUser.id, name: data.name.trim(),
       description: data.description || '', targetAmount: parseFloat(data.targetAmount),
       deadline: data.deadline, icon: data.icon || '🎯', color: data.color || 'indigo',
+      currency: data.currency || 'USD',
       status: 'active', createdAt: Date.now(),
     };
     save('finapp_goals', [...load('finapp_goals'), goal]); refresh(); return goal;

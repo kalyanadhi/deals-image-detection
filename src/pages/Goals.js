@@ -3,18 +3,15 @@ import { useFinance } from '../context/FinanceContext';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 
-const fmt = (n) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n);
+const CURRENCIES = ['USD','EUR','GBP','INR','CAD','AUD','JPY','SGD','AED','MYR'];
+
+const fmt = (n, cur = 'USD') =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(n);
 
 const colorBg = {
   indigo:'bg-indigo-600', emerald:'bg-emerald-600', rose:'bg-rose-600',
   amber:'bg-amber-500', blue:'bg-blue-600', cyan:'bg-cyan-600',
   orange:'bg-orange-500', teal:'bg-teal-600',
-};
-const colorLight = {
-  indigo:'bg-indigo-50 text-indigo-700', emerald:'bg-emerald-50 text-emerald-700',
-  rose:'bg-rose-50 text-rose-700', amber:'bg-amber-50 text-amber-700',
-  blue:'bg-blue-50 text-blue-700', cyan:'bg-cyan-50 text-cyan-700',
-  orange:'bg-orange-50 text-orange-700', teal:'bg-teal-50 text-teal-700',
 };
 
 function goalStatus(goal, saved) {
@@ -32,9 +29,13 @@ function goalStatus(goal, saved) {
 function GoalModal({ goal, onClose, onSave }) {
   const { GOAL_ICONS, GOAL_COLORS } = useFinance();
   const [form, setForm] = useState({
-    name: goal?.name || '', description: goal?.description || '',
-    targetAmount: goal?.targetAmount || '', deadline: goal?.deadline || '',
-    icon: goal?.icon || '🎯', color: goal?.color || 'indigo',
+    name:         goal?.name         || '',
+    description:  goal?.description  || '',
+    targetAmount: goal?.targetAmount || '',
+    deadline:     goal?.deadline     || '',
+    currency:     goal?.currency     || 'USD',
+    icon:         goal?.icon         || '🎯',
+    color:        goal?.color        || 'indigo',
   });
   const [error, setError] = useState('');
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -51,27 +52,37 @@ function GoalModal({ goal, onClose, onSave }) {
     <Modal title={goal ? 'Edit Goal' : 'New Goal'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>}
+
         <div>
           <label className="label">Goal Name</label>
-          <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Emergency Fund" autoFocus required />
+          <input className="input" value={form.name} onChange={e => set('name', e.target.value)}
+            placeholder="e.g. Emergency Fund" autoFocus required />
         </div>
         <div>
           <label className="label">Description (optional)</label>
-          <input className="input" value={form.description} onChange={e => set('description', e.target.value)} placeholder="Why this goal matters..." />
+          <input className="input" value={form.description} onChange={e => set('description', e.target.value)}
+            placeholder="Why this goal matters..." />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2">
             <label className="label">Target Amount</label>
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-              <input className="input pl-7" type="number" step="0.01" min="0.01" value={form.targetAmount} onChange={e => set('targetAmount', e.target.value)} required />
-            </div>
+            <input className="input" type="number" step="0.01" min="0.01"
+              value={form.targetAmount} onChange={e => set('targetAmount', e.target.value)} required />
           </div>
           <div>
-            <label className="label">Deadline</label>
-            <input className="input" type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} required />
+            <label className="label">Currency</label>
+            <select className="input" value={form.currency} onChange={e => set('currency', e.target.value)}>
+              {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
         </div>
+
+        <div>
+          <label className="label">Deadline</label>
+          <input className="input" type="date" value={form.deadline} onChange={e => set('deadline', e.target.value)} required />
+        </div>
+
         <div>
           <label className="label">Icon</label>
           <div className="flex flex-wrap gap-1.5">
@@ -82,6 +93,7 @@ function GoalModal({ goal, onClose, onSave }) {
             ))}
           </div>
         </div>
+
         <div>
           <label className="label">Color</label>
           <div className="flex gap-2">
@@ -92,6 +104,7 @@ function GoalModal({ goal, onClose, onSave }) {
             ))}
           </div>
         </div>
+
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
           <button type="submit" className="btn-primary flex-1">{goal ? 'Save Changes' : 'Create Goal'}</button>
@@ -106,6 +119,7 @@ function ContributionModal({ goal, onClose }) {
   const [form, setForm] = useState({ amount: '', note: '', date: new Date().toISOString().split('T')[0] });
   const [error, setError] = useState('');
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const cur = goal.currency || 'USD';
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -119,11 +133,9 @@ function ContributionModal({ goal, onClose }) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>}
         <div>
-          <label className="label">Amount</label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-            <input className="input pl-7" type="number" step="0.01" min="0.01" value={form.amount} onChange={e => set('amount', e.target.value)} autoFocus required />
-          </div>
+          <label className="label">Amount ({cur})</label>
+          <input className="input" type="number" step="0.01" min="0.01"
+            value={form.amount} onChange={e => set('amount', e.target.value)} autoFocus required />
         </div>
         <div>
           <label className="label">Date</label>
@@ -131,7 +143,8 @@ function ContributionModal({ goal, onClose }) {
         </div>
         <div>
           <label className="label">Note (optional)</label>
-          <input className="input" value={form.note} onChange={e => set('note', e.target.value)} placeholder="e.g. Monthly contribution" />
+          <input className="input" value={form.note} onChange={e => set('note', e.target.value)}
+            placeholder="e.g. Monthly contribution" />
         </div>
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
@@ -144,12 +157,13 @@ function ContributionModal({ goal, onClose }) {
 
 function GoalCard({ goal, onEdit, onDelete, onContribute }) {
   const { getGoalSaved, getGoalContributions } = useFinance();
-  const saved = getGoalSaved(goal.id);
-  const pct   = Math.min((saved / goal.targetAmount) * 100, 100);
+  const saved     = getGoalSaved(goal.id);
+  const pct       = Math.min((saved / goal.targetAmount) * 100, 100);
   const { label, cls, bar, daysLeft } = goalStatus(goal, saved);
   const remaining = goal.targetAmount - saved;
+  const cur       = goal.currency || 'USD';
   const [showHistory, setShowHistory] = useState(false);
-  const contribs = getGoalContributions(goal.id);
+  const contribs  = getGoalContributions(goal.id);
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
@@ -184,11 +198,13 @@ function GoalCard({ goal, onEdit, onDelete, onContribute }) {
         </div>
 
         <div className="flex items-center justify-between text-sm mb-1">
-          <span className="font-bold text-gray-900">{fmt(saved)} saved</span>
-          <span className="text-gray-500">of {fmt(goal.targetAmount)}</span>
+          <span className="font-bold text-gray-900">{fmt(saved, cur)} saved</span>
+          <span className="text-gray-500">of {fmt(goal.targetAmount, cur)}</span>
         </div>
         <p className="text-xs text-gray-400 mb-4">
-          {goal.status === 'completed' ? 'Goal reached!' : `${fmt(remaining)} remaining • ${pct.toFixed(1)}% complete`}
+          {goal.status === 'completed'
+            ? 'Goal reached!'
+            : `${fmt(remaining, cur)} remaining • ${pct.toFixed(1)}% complete`}
         </p>
 
         <div className="flex items-center gap-2">
@@ -207,7 +223,7 @@ function GoalCard({ goal, onEdit, onDelete, onContribute }) {
             {contribs.slice(0, 8).map(c => (
               <div key={c.id} className="flex items-center justify-between text-xs">
                 <span className="text-gray-500">{c.date}{c.note ? ` · ${c.note}` : ''}</span>
-                <span className="font-medium text-emerald-600">+{fmt(c.amount)}</span>
+                <span className="font-medium text-emerald-600">+{fmt(c.amount, cur)}</span>
               </div>
             ))}
           </div>
@@ -219,17 +235,16 @@ function GoalCard({ goal, onEdit, onDelete, onContribute }) {
 
 export default function Goals() {
   const { getGoals, getGoalSaved, createGoal, updateGoal, deleteGoal } = useFinance();
-  const [tab, setTab] = useState('active');
-  const [modal, setModal] = useState(null);
+  const [tab, setTab]               = useState('active');
+  const [modal, setModal]           = useState(null);
   const [contributeGoal, setContributeGoal] = useState(null);
-  const [confirm, setConfirm] = useState(null);
+  const [confirm, setConfirm]       = useState(null);
 
   const allGoals = getGoals();
-  const goals = allGoals.filter(g => tab === 'active' ? g.status === 'active' : g.status === 'completed');
+  const goals    = allGoals.filter(g => tab === 'active' ? g.status === 'active' : g.status === 'completed');
 
-  const totalTarget = allGoals.filter(g => g.status === 'active').reduce((s, g) => s + g.targetAmount, 0);
-  const totalSaved  = allGoals.filter(g => g.status === 'active').reduce((s, g) => s + getGoalSaved(g.id), 0);
-  const completedCount = allGoals.filter(g => g.status === 'completed').length;
+  const activeGoals     = allGoals.filter(g => g.status === 'active');
+  const completedCount  = allGoals.filter(g => g.status === 'completed').length;
 
   const handleSave = (form) => {
     if (modal === 'add') createGoal(form);
@@ -249,25 +264,30 @@ export default function Goals() {
         </div>
 
         {/* Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-          {[
-            { label: 'Active Goals',  value: allGoals.filter(g=>g.status==='active').length, suffix: '' },
-            { label: 'Total Target',  value: fmt(totalTarget), suffix: '' },
-            { label: 'Total Saved',   value: fmt(totalSaved),  suffix: '' },
-            { label: 'Completed',     value: completedCount,   suffix: '' },
-          ].map(s => (
-            <div key={s.label} className="card text-center py-4">
-              <p className="text-xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-500 mt-1">{s.label}</p>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
+          <div className="card text-center py-4">
+            <p className="text-xl font-bold text-gray-900">{activeGoals.length}</p>
+            <p className="text-xs text-gray-500 mt-1">Active Goals</p>
+          </div>
+          <div className="card text-center py-4">
+            <p className="text-xl font-bold text-gray-900">{completedCount}</p>
+            <p className="text-xs text-gray-500 mt-1">Completed</p>
+          </div>
+          <div className="card text-center py-4 sm:block hidden">
+            <p className="text-xl font-bold text-gray-900">
+              {activeGoals.length > 0
+                ? `${Math.round(activeGoals.reduce((s, g) => s + Math.min((getGoalSaved(g.id) / g.targetAmount) * 100, 100), 0) / activeGoals.length)}%`
+                : '—'}
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Avg. Progress</p>
+          </div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-100 rounded-lg p-1 w-fit mb-6">
           {[['active','Active'], ['completed','Completed']].map(([key, lbl]) => (
             <button key={key} onClick={() => setTab(key)}
-              className={`px-5 py-1.5 rounded-md text-sm font-medium transition-colors ${tab===key ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+              className={`px-5 py-1.5 rounded-md text-sm font-medium transition-colors ${tab === key ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
             >{lbl}</button>
           ))}
         </div>
@@ -282,7 +302,7 @@ export default function Goals() {
             {tab === 'active' && <button onClick={() => setModal('add')} className="btn-primary">Create Your First Goal</button>}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {goals.map(g => (
               <GoalCard
                 key={g.id} goal={g}

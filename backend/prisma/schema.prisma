@@ -176,6 +176,7 @@ model Goal {
   name         String
   description  String?
   targetAmount Decimal    @map("target_amount") @db.Decimal(15, 2)
+  currency     String     @default("USD") @db.Char(3)
   deadline     DateTime   @db.Date
   icon         String     @default("🎯")
   color        String     @default("indigo")

@@ -35,7 +35,8 @@ function GoalMiniCard({ goal, saved }) {
           />
         </div>
         <p className="text-xs text-gray-400 mt-0.5">
-          {isOverdue ? <span className="text-red-500">{Math.abs(daysLeft)}d overdue</span>
+          {isOverdue
+            ? <span className="text-red-500">{Math.abs(daysLeft)}d overdue</span>
             : goal.status === 'completed' ? <span className="text-emerald-600">Completed!</span>
             : `${daysLeft}d left`}
         </p>
@@ -54,33 +55,51 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [showCreate, setShowCreate] = useState(false);
 
-  const wallets   = getWallets();
-  const goals     = getGoals().filter(g => g.status === 'active').slice(0, 4);
-  const savings   = getSavingsAccounts();
+  const wallets  = getWallets();
+  const goals    = getGoals().filter(g => g.status === 'active').slice(0, 4);
+  const savings  = getSavingsAccounts();
   const { currentValue: investmentsValue } = getPortfolioSummary();
   const savingsTotal = savings.reduce((s, a) => s + getSavingsBalance(a.id), 0);
   const netWorth     = getNetWorth();
 
-  const totalBalance = useMemo(() =>
-    wallets.reduce((sum, w) => sum + getWalletBalance(w.id), 0), [wallets]);
+  // Aggregate balance + this-month income/expense per wallet currency.
+  // Never mix currencies — each group is displayed separately.
+  const currencyStats = useMemo(() => {
+    const stats = {};
+    const now = new Date();
+    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    wallets.forEach(w => {
+      const cur = w.currency || 'USD';
+      if (!stats[cur]) stats[cur] = { balance: 0, income: 0, expense: 0 };
+      stats[cur].balance += getWalletBalance(w.id);
+
+      getTransactions(w.id).forEach(t => {
+        if (t.date.startsWith(month)) {
+          if (t.type === 'income') stats[cur].income += t.amount;
+          else stats[cur].expense += t.amount;
+        }
+      });
+    });
+    return stats;
+  }, [wallets]);
+
+  const currencies       = Object.keys(currencyStats);
+  const isMultiCurrency  = currencies.length > 1;
+  const primaryCurrency  = currencies[0] || 'USD';
+  const totalBalance     = currencyStats[primaryCurrency]?.balance || 0;
 
   const allTxns = useMemo(() => {
     const txns = [];
     wallets.forEach(w => {
-      getTransactions(w.id).forEach(t => txns.push({ ...t, walletName: w.name, walletColor: w.color, walletIcon: w.icon }));
+      getTransactions(w.id).forEach(t => txns.push({
+        ...t,
+        walletName: w.name, walletColor: w.color,
+        walletIcon: w.icon, walletCurrency: w.currency || 'USD',
+      }));
     });
     return txns.sort((a, b) => new Date(b.date) - new Date(a.date));
   }, [wallets]);
-
-  const thisMonth = useMemo(() => {
-    const now = new Date();
-    const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-    const monthTxns = allTxns.filter(t => t.date.startsWith(month));
-    return {
-      income:  monthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0),
-      expense: monthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0),
-    };
-  }, [allTxns]);
 
   const recentTxns = allTxns.slice(0, 6);
 
@@ -94,25 +113,76 @@ export default function Dashboard() {
           <p className="text-gray-500 text-sm mt-1">Here's your financial overview</p>
         </div>
 
-        {/* Net worth + month stats */}
+        {/* Summary stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-8">
+
+          {/* Main card — net worth (single currency) or per-currency breakdown */}
           <div className="card bg-gradient-to-br from-indigo-600 to-blue-700 text-white border-0 sm:col-span-2">
-            <p className="text-indigo-200 text-sm mb-1">Net Worth</p>
-            <p className="text-3xl font-bold">{formatCurrency(netWorth)}</p>
-            <div className="flex gap-4 mt-2">
-              <span className="text-xs text-indigo-200">Wallets: {formatCurrency(totalBalance)}</span>
-              <span className="text-xs text-indigo-200">Savings: {formatCurrency(savingsTotal)}</span>
-              <span className="text-xs text-indigo-200">Investments: {formatCurrency(investmentsValue)}</span>
-            </div>
+            {isMultiCurrency ? (
+              <>
+                <p className="text-indigo-200 text-sm mb-3">Wallet Balances by Currency</p>
+                <div className="space-y-2">
+                  {currencies.map(cur => (
+                    <div key={cur} className="flex items-baseline justify-between">
+                      <span className="text-indigo-300 text-sm font-medium">{cur}</span>
+                      <span className={`text-xl font-bold ${currencyStats[cur].balance < 0 ? 'text-red-300' : ''}`}>
+                        {formatCurrency(currencyStats[cur].balance, cur)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-indigo-300 mt-3">Savings & investments shown on their pages</p>
+              </>
+            ) : (
+              <>
+                <p className="text-indigo-200 text-sm mb-1">Net Worth</p>
+                <p className="text-3xl font-bold">{formatCurrency(netWorth, primaryCurrency)}</p>
+                <div className="flex gap-4 mt-2">
+                  <span className="text-xs text-indigo-200">Wallets: {formatCurrency(totalBalance, primaryCurrency)}</span>
+                  <span className="text-xs text-indigo-200">Savings: {formatCurrency(savingsTotal)}</span>
+                  <span className="text-xs text-indigo-200">Investments: {formatCurrency(investmentsValue)}</span>
+                </div>
+              </>
+            )}
           </div>
+
+          {/* This month income */}
           <div className="card">
             <p className="text-gray-500 text-sm mb-1">This Month Income</p>
-            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(thisMonth.income)}</p>
+            {isMultiCurrency ? (
+              <div className="space-y-1 mt-2">
+                {currencies.map(cur => (
+                  <div key={cur} className="flex items-baseline justify-between">
+                    <span className="text-gray-400 text-xs">{cur}</span>
+                    <span className="font-semibold text-emerald-600 text-sm">{formatCurrency(currencyStats[cur].income, cur)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-emerald-600">
+                {formatCurrency(currencyStats[primaryCurrency]?.income || 0, primaryCurrency)}
+              </p>
+            )}
             <p className="text-gray-400 text-xs mt-1">↑ Money in</p>
           </div>
+
+          {/* This month expenses */}
           <div className="card">
             <p className="text-gray-500 text-sm mb-1">This Month Expenses</p>
-            <p className="text-2xl font-bold text-red-500">{formatCurrency(thisMonth.expense)}</p>
+            {isMultiCurrency ? (
+              <div className="space-y-1 mt-2">
+                {currencies.map(cur => (
+                  <div key={cur} className="flex items-baseline justify-between">
+                    <span className="text-gray-400 text-xs">{cur}</span>
+                    <span className="font-semibold text-red-500 text-sm">{formatCurrency(currencyStats[cur].expense, cur)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-2xl font-bold text-red-500">
+                {formatCurrency(currencyStats[primaryCurrency]?.expense || 0, primaryCurrency)}
+              </p>
+            )}
             <p className="text-gray-400 text-xs mt-1">↓ Money out</p>
           </div>
         </div>
@@ -120,9 +190,9 @@ export default function Dashboard() {
         {/* Quick links */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           {[
-            { path: '/goals',       icon: '🎯', label: 'Goals',       color: 'indigo' },
-            { path: '/savings',     icon: '🏦', label: 'Savings',     color: 'emerald' },
-            { path: '/investments', icon: '📈', label: 'Investments', color: 'blue' },
+            { path: '/goals',       icon: '🎯', label: 'Goals'       },
+            { path: '/savings',     icon: '🏦', label: 'Savings'     },
+            { path: '/investments', icon: '📈', label: 'Investments' },
           ].map(item => (
             <Link key={item.path} to={item.path}
               className="card flex flex-col items-center gap-2 py-4 hover:shadow-md transition-shadow cursor-pointer text-center"
@@ -194,7 +264,7 @@ export default function Dashboard() {
                       <p className="text-xs text-gray-500">{t.walletName} • {t.date}</p>
                     </div>
                     <span className={`text-sm font-semibold ${t.type === 'income' ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                      {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount, t.walletCurrency)}
                     </span>
                   </div>
                 ))}

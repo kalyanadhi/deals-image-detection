@@ -3,10 +3,21 @@ import { useFinance } from '../context/FinanceContext';
 import Layout from '../components/Layout';
 import Modal from '../components/Modal';
 
-const fmt = (n, cur = 'USD') => new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(n);
+const fmt    = (n, cur = 'USD') => new Intl.NumberFormat('en-US', { style: 'currency', currency: cur }).format(n);
 const fmtPct = (n) => `${n >= 0 ? '+' : ''}${n.toFixed(2)}%`;
 
-const CURRENCIES = ['USD','EUR','GBP','INR','CAD','AUD','JPY'];
+const CURRENCIES = ['USD','EUR','GBP','INR','CAD','AUD','JPY','SGD','AED','MYR'];
+
+// Per-type configuration controls which fields appear and how they're labelled.
+const TYPE_CONFIG = {
+  stock:       { ticker: 'required', qtyLabel: 'Shares',       priceLabel: 'Buy Price / Share',  currentLabel: 'Current Price',     showQty: true  },
+  crypto:      { ticker: 'required', qtyLabel: 'Quantity',     priceLabel: 'Buy Price / Unit',   currentLabel: 'Current Price',     showQty: true  },
+  etf:         { ticker: 'optional', qtyLabel: 'Shares',       priceLabel: 'Buy Price / Share',  currentLabel: 'Current Price',     showQty: true  },
+  mutual_fund: { ticker: 'none',     qtyLabel: 'Units',        priceLabel: 'Buy NAV / Unit',     currentLabel: 'Current NAV',       showQty: true  },
+  bond:        { ticker: 'none',     qtyLabel: 'Bonds Held',   priceLabel: 'Buy Price / Bond',   currentLabel: 'Current Price',     showQty: true  },
+  real_estate: { ticker: 'none',     qtyLabel: null,           priceLabel: 'Cost Basis',         currentLabel: 'Current Value',     showQty: false },
+  other:       { ticker: 'optional', qtyLabel: 'Quantity',     priceLabel: 'Buy Price',          currentLabel: 'Current Value',     showQty: true  },
+};
 
 const typeBadge = {
   stock:       'bg-blue-100 text-blue-700',
@@ -21,41 +32,54 @@ const typeBadge = {
 function InvestmentModal({ investment, onClose, onSave }) {
   const { INV_TYPES, INV_TYPE_LABELS } = useFinance();
   const [form, setForm] = useState({
-    name: investment?.name || '', ticker: investment?.ticker || '',
-    type: investment?.type || 'stock', quantity: investment?.quantity || '',
-    purchasePrice: investment?.purchasePrice || '', currentPrice: investment?.currentPrice || '',
-    currency: investment?.currency || 'USD', purchaseDate: investment?.purchaseDate || new Date().toISOString().split('T')[0],
-    notes: investment?.notes || '',
+    name:          investment?.name          || '',
+    ticker:        investment?.ticker        || '',
+    type:          investment?.type          || 'stock',
+    quantity:      investment?.quantity      || '',
+    purchasePrice: investment?.purchasePrice || '',
+    currentPrice:  investment?.currentPrice  || '',
+    currency:      investment?.currency      || 'USD',
+    purchaseDate:  investment?.purchaseDate  || new Date().toISOString().split('T')[0],
+    notes:         investment?.notes         || '',
   });
   const [error, setError] = useState('');
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const cfg = TYPE_CONFIG[form.type] || TYPE_CONFIG.other;
+
+  const handleTypeChange = (type) => {
+    const newCfg = TYPE_CONFIG[type] || TYPE_CONFIG.other;
+    setForm(f => ({
+      ...f,
+      type,
+      ticker:   newCfg.ticker === 'none' ? '' : f.ticker,
+      quantity: newCfg.showQty ? f.quantity : '1',
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.name.trim())                                   { setError('Name is required'); return; }
-    if (!form.quantity || parseFloat(form.quantity) <= 0)    { setError('Enter a valid quantity'); return; }
-    if (!form.purchasePrice || parseFloat(form.purchasePrice) <= 0) { setError('Enter a valid purchase price'); return; }
-    onSave(form);
+    if (!form.name.trim()) { setError('Name is required'); return; }
+    if (cfg.ticker === 'required' && !form.ticker.trim()) { setError(`Ticker / Symbol is required for ${INV_TYPE_LABELS[form.type]}`); return; }
+    if (cfg.showQty && (!form.quantity || parseFloat(form.quantity) <= 0)) { setError('Enter a valid quantity'); return; }
+    if (!form.purchasePrice || parseFloat(form.purchasePrice) <= 0) { setError(`Enter a valid ${cfg.priceLabel.toLowerCase()}`); return; }
+    onSave({
+      ...form,
+      quantity: cfg.showQty ? form.quantity : '1',
+      currentPrice: form.currentPrice || form.purchasePrice,
+    });
   };
 
   return (
     <Modal title={investment ? 'Edit Investment' : 'Add Investment'} onClose={onClose} size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Name</label>
-            <input className="input" value={form.name} onChange={e => set('name', e.target.value)} placeholder="e.g. Apple Inc." autoFocus required />
-          </div>
-          <div>
-            <label className="label">Ticker / Symbol</label>
-            <input className="input" value={form.ticker} onChange={e => set('ticker', e.target.value.toUpperCase())} placeholder="AAPL" />
-          </div>
-        </div>
+
+        {/* Type + Currency */}
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="label">Asset Type</label>
-            <select className="input" value={form.type} onChange={e => set('type', e.target.value)}>
+            <select className="input" value={form.type} onChange={e => handleTypeChange(e.target.value)}>
               {INV_TYPES.map(t => <option key={t} value={t}>{INV_TYPE_LABELS[t]}</option>)}
             </select>
           </div>
@@ -66,28 +90,66 @@ function InvestmentModal({ investment, onClose, onSave }) {
             </select>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+
+        {/* Name + Ticker */}
+        <div className={cfg.ticker !== 'none' ? 'grid grid-cols-2 gap-3' : ''}>
           <div>
-            <label className="label">Quantity / Shares</label>
-            <input className="input" type="number" step="any" min="0" value={form.quantity} onChange={e => set('quantity', e.target.value)} required />
+            <label className="label">Name</label>
+            <input className="input" value={form.name} onChange={e => set('name', e.target.value)}
+              placeholder={form.type === 'real_estate' ? 'e.g. Downtown Apartment' : 'e.g. Apple Inc.'}
+              autoFocus required />
+          </div>
+          {cfg.ticker !== 'none' && (
+            <div>
+              <label className="label">
+                Ticker / Symbol
+                {cfg.ticker === 'optional' && <span className="text-gray-400 font-normal ml-1">(optional)</span>}
+              </label>
+              <input className="input" value={form.ticker}
+                onChange={e => set('ticker', e.target.value.toUpperCase())}
+                placeholder={form.type === 'crypto' ? 'BTC' : 'AAPL'}
+                required={cfg.ticker === 'required'} />
+            </div>
+          )}
+        </div>
+
+        {/* Quantity + Prices */}
+        <div className={`grid gap-3 ${cfg.showQty ? 'grid-cols-3' : 'grid-cols-2'}`}>
+          {cfg.showQty && (
+            <div>
+              <label className="label">{cfg.qtyLabel}</label>
+              <input className="input" type="number" step="any" min="0"
+                value={form.quantity} onChange={e => set('quantity', e.target.value)} required />
+            </div>
+          )}
+          <div>
+            <label className="label">{cfg.priceLabel}</label>
+            <input className="input" type="number" step="0.01" min="0"
+              value={form.purchasePrice} onChange={e => set('purchasePrice', e.target.value)} required />
           </div>
           <div>
-            <label className="label">Purchase Price</label>
-            <input className="input" type="number" step="0.01" min="0" value={form.purchasePrice} onChange={e => set('purchasePrice', e.target.value)} required />
-          </div>
-          <div>
-            <label className="label">Current Price</label>
-            <input className="input" type="number" step="0.01" min="0" value={form.currentPrice} onChange={e => set('currentPrice', e.target.value)} />
+            <label className="label">
+              {cfg.currentLabel}
+              <span className="text-gray-400 font-normal ml-1">(optional)</span>
+            </label>
+            <input className="input" type="number" step="0.01" min="0"
+              value={form.currentPrice} onChange={e => set('currentPrice', e.target.value)}
+              placeholder={form.purchasePrice || '0'} />
           </div>
         </div>
+
         <div>
           <label className="label">Purchase Date</label>
-          <input className="input" type="date" value={form.purchaseDate} onChange={e => set('purchaseDate', e.target.value)} />
+          <input className="input" type="date" value={form.purchaseDate}
+            onChange={e => set('purchaseDate', e.target.value)} />
         </div>
+
         <div>
           <label className="label">Notes (optional)</label>
-          <input className="input" value={form.notes} onChange={e => set('notes', e.target.value)} placeholder="Any additional notes..." />
+          <input className="input" value={form.notes} onChange={e => set('notes', e.target.value)}
+            placeholder="Any additional notes..." />
         </div>
+
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
           <button type="submit" className="btn-primary flex-1">{investment ? 'Save Changes' : 'Add Investment'}</button>
@@ -98,8 +160,13 @@ function InvestmentModal({ investment, onClose, onSave }) {
 }
 
 function UpdatePriceModal({ investment, onClose, onSave }) {
+  const { INV_TYPE_LABELS } = useFinance();
   const [price, setPrice] = useState(investment.currentPrice);
   const [error, setError] = useState('');
+  const cfg       = TYPE_CONFIG[investment.type] || TYPE_CONFIG.other;
+  const oldValue  = investment.purchasePrice * investment.quantity;
+  const newValue  = parseFloat(price || 0) * investment.quantity;
+  const gain      = newValue - oldValue;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -107,20 +174,14 @@ function UpdatePriceModal({ investment, onClose, onSave }) {
     onSave(parseFloat(price));
   };
 
-  const oldValue = investment.purchasePrice * investment.quantity;
-  const newValue = parseFloat(price || 0) * investment.quantity;
-  const gain = newValue - oldValue;
-
   return (
-    <Modal title={`Update Price — ${investment.ticker || investment.name}`} onClose={onClose}>
+    <Modal title={`Update ${cfg.currentLabel} — ${investment.ticker || investment.name}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg">{error}</div>}
         <div>
-          <label className="label">Current Price per Share</label>
-          <div className="relative">
-            <span className="absolute left-3 top-2.5 text-gray-500 text-sm">$</span>
-            <input className="input pl-7" type="number" step="0.01" min="0.01" value={price} onChange={e => setPrice(e.target.value)} autoFocus required />
-          </div>
+          <label className="label">{cfg.currentLabel} ({investment.currency})</label>
+          <input className="input" type="number" step="0.01" min="0.01"
+            value={price} onChange={e => setPrice(e.target.value)} autoFocus required />
         </div>
         {parseFloat(price) > 0 && (
           <div className={`rounded-lg px-4 py-3 text-sm ${gain >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
@@ -129,7 +190,7 @@ function UpdatePriceModal({ investment, onClose, onSave }) {
         )}
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-          <button type="submit" className="btn-primary flex-1">Update Price</button>
+          <button type="submit" className="btn-primary flex-1">Update</button>
         </div>
       </form>
     </Modal>
@@ -138,11 +199,12 @@ function UpdatePriceModal({ investment, onClose, onSave }) {
 
 function InvestmentCard({ inv, onEdit, onDelete, onUpdatePrice }) {
   const { INV_TYPE_LABELS } = useFinance();
-  const invested  = inv.purchasePrice * inv.quantity;
-  const current   = inv.currentPrice  * inv.quantity;
-  const gain      = current - invested;
-  const gainPct   = invested > 0 ? (gain / invested) * 100 : 0;
-  const isUp      = gain >= 0;
+  const cfg      = TYPE_CONFIG[inv.type] || TYPE_CONFIG.other;
+  const invested = inv.purchasePrice * inv.quantity;
+  const current  = inv.currentPrice  * inv.quantity;
+  const gain     = current - invested;
+  const gainPct  = invested > 0 ? (gain / invested) * 100 : 0;
+  const isUp     = gain >= 0;
 
   return (
     <div className="card group hover:shadow-md transition-shadow">
@@ -164,12 +226,19 @@ function InvestmentCard({ inv, onEdit, onDelete, onUpdatePrice }) {
       </div>
 
       <div className="space-y-2 mb-4">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-500">{inv.quantity} shares @ {fmt(inv.currentPrice, inv.currency)}</span>
-          <span className="font-bold text-gray-900">{fmt(current, inv.currency)}</span>
-        </div>
+        {cfg.showQty ? (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">{inv.quantity} {cfg.qtyLabel?.toLowerCase()} @ {fmt(inv.currentPrice, inv.currency)}</span>
+            <span className="font-bold text-gray-900">{fmt(current, inv.currency)}</span>
+          </div>
+        ) : (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-500">{cfg.currentLabel}</span>
+            <span className="font-bold text-gray-900">{fmt(current, inv.currency)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-xs text-gray-400">
-          <span>Cost basis ({fmt(inv.purchasePrice, inv.currency)}/share)</span>
+          <span>Cost basis{cfg.showQty ? ` (${fmt(inv.purchasePrice, inv.currency)}/${cfg.qtyLabel?.toLowerCase().replace(/s$/, '')})` : ''}</span>
           <span>{fmt(invested, inv.currency)}</span>
         </div>
         <div className={`flex justify-between text-sm font-semibold ${isUp ? 'text-emerald-600' : 'text-red-500'}`}>
@@ -180,16 +249,18 @@ function InvestmentCard({ inv, onEdit, onDelete, onUpdatePrice }) {
 
       {inv.notes && <p className="text-xs text-gray-400 mb-3 truncate">{inv.notes}</p>}
 
-      <button onClick={onUpdatePrice} className="btn-secondary w-full text-sm py-1.5">Update Price</button>
+      <button onClick={onUpdatePrice} className="btn-secondary w-full text-sm py-1.5">
+        Update {cfg.currentLabel}
+      </button>
     </div>
   );
 }
 
 export default function Investments() {
   const { getInvestments, createInvestment, updateInvestment, deleteInvestment, getPortfolioSummary, INV_TYPES, INV_TYPE_LABELS } = useFinance();
-  const [modal, setModal]       = useState(null);
+  const [modal, setModal]           = useState(null);
   const [priceModal, setPriceModal] = useState(null);
-  const [confirm, setConfirm]   = useState(null);
+  const [confirm, setConfirm]       = useState(null);
   const [typeFilter, setTypeFilter] = useState('all');
 
   const investments = getInvestments().sort((a, b) => (b.currentPrice * b.quantity) - (a.currentPrice * a.quantity));
@@ -198,7 +269,7 @@ export default function Investments() {
   const isUp    = gain >= 0;
 
   const presentTypes = [...new Set(investments.map(i => i.type))];
-  const filtered = typeFilter === 'all' ? investments : investments.filter(i => i.type === typeFilter);
+  const filtered     = typeFilter === 'all' ? investments : investments.filter(i => i.type === typeFilter);
 
   const handleSave = (form) => {
     if (modal === 'add') createInvestment(form);
@@ -275,7 +346,13 @@ export default function Investments() {
         )}
       </div>
 
-      {modal && <InvestmentModal investment={modal === 'add' ? null : modal} onClose={() => setModal(null)} onSave={handleSave} />}
+      {modal && (
+        <InvestmentModal
+          investment={modal === 'add' ? null : modal}
+          onClose={() => setModal(null)}
+          onSave={handleSave}
+        />
+      )}
       {priceModal && (
         <UpdatePriceModal
           investment={priceModal}
